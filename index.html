@@ -1,44 +1,101 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:,"><meta name="referrer" content="no-referrer"><title>VO-Teleprompter</title><meta name="description" content="Browser teleprompter with clean WAV voiceover recording">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:,"><meta name="referrer" content="no-referrer"><title>VO-Teleprompter</title>
+<meta name="description" content="Browser teleprompter with clean WAV voiceover recording">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d10">
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0b0d10;color:#e8e8e8;font-family:Segoe UI,Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-#bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:8px 12px;background:#161a20;border-bottom:1px solid #2a2f38;font-size:13px}
-#bar label{display:flex;align-items:center;gap:5px}button{background:#2a3340;color:#fff;border:1px solid #3c4756;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:13px}button:hover{background:#36424f}
+:root{--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--dock-h:0px;--bar-h:48px}
+*{box-sizing:border-box}
+html,body{margin:0;background:#0b0d10;color:#e8e8e8;font-family:Segoe UI,system-ui,Arial,sans-serif;height:100%;height:100dvh;overflow:hidden;-webkit-text-size-adjust:100%;overflow-x:hidden}
+body{display:flex;flex-direction:column;padding-top:var(--safe-t);padding-left:var(--safe-l);padding-right:var(--safe-r);min-width:0}
+#bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:8px 12px;background:#161a20;border-bottom:1px solid #2a2f38;font-size:13px;flex-shrink:0;min-width:0;overflow-x:hidden}#bar b{min-width:0}
+#bar label{display:flex;align-items:center;gap:5px;min-width:0}
+button{background:#2a3340;color:#fff;border:1px solid #3c4756;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:hover{background:#36424f}button:disabled{opacity:.45;cursor:default}
 button.rec{background:#a3202a;border-color:#d33}button.rec.on{background:#e33;animation:bl 1s infinite}@keyframes bl{50%{opacity:.6}}
-select,input[type=text]{background:#0f1318;color:#eee;border:1px solid #3c4756;border-radius:5px;padding:4px}
-#main{flex:1;display:flex;min-height:0}#stage{flex:1;position:relative;overflow:hidden}
-#scroller{position:absolute;inset:0;overflow-y:scroll;scrollbar-width:thin}#scroller::-webkit-scrollbar{width:6px}
-#text{padding:50vh 8% 60vh;line-height:1.45;font-weight:600}#text.mirror{transform:scaleX(-1)}
+select,input[type=text]{background:#0f1318;color:#eee;border:1px solid #3c4756;border-radius:5px;padding:4px;max-width:100%}
+#main{flex:1;display:flex;min-height:0;min-width:0;overflow:hidden}
+#stage{flex:1;position:relative;overflow:hidden;min-width:0}
+#scroller{position:absolute;inset:0;overflow-y:scroll;overflow-x:hidden;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+#scroller::-webkit-scrollbar{width:6px}
+#text{padding:50vh 6% 60vh;line-height:1.45;font-weight:600;overflow-wrap:anywhere;word-break:break-word;hyphens:auto;max-width:100%}
+#text.mirror{transform:scaleX(-1)}
 #text p{margin:0 0 1.1em}.s{transition:color .2s;color:#9aa3ad}.s.cur{color:#fff}.s.done{color:#5d6670}.mk{color:#6b7280;font-weight:400;font-size:.7em;letter-spacing:.05em}
 #band{position:absolute;left:0;right:0;top:calc(var(--fp,40%) - .9em);height:1.8em;pointer-events:none;border-top:2px solid rgba(255,200,0,.45);border-bottom:2px solid rgba(255,200,0,.45);background:rgba(255,200,0,.06)}
 #band:before{content:'▶';position:absolute;left:6px;top:50%;transform:translateY(-50%);color:#fc0;font-size:20px}
-#side{width:340px;background:#12161b;border-left:1px solid #2a2f38;display:flex;flex-direction:column;font-size:13px;overflow:auto}
+#side{width:340px;max-width:100%;background:#12161b;border-left:1px solid #2a2f38;display:flex;flex-direction:column;font-size:13px;overflow:auto;min-width:0;flex-shrink:0}
 #side h3{margin:10px 12px 6px;font-size:14px;color:#fc0}#side section{padding:0 12px 10px;border-bottom:1px solid #222}
-textarea{width:100%;height:120px;background:#0f1318;color:#eee;border:1px solid #3c4756;border-radius:5px;font-size:13px}
+textarea{width:100%;height:120px;background:#0f1318;color:#eee;border:1px solid #3c4756;border-radius:5px;font-size:16px;max-width:100%}
 #meter{height:14px;background:#222;border-radius:4px;overflow:hidden;position:relative}#lvl{height:100%;width:0;background:linear-gradient(90deg,#2c6,#cc2 70%,#e33)}
 #clip{color:#e33;font-weight:bold;visibility:hidden}#peak{font-variant-numeric:tabular-nums}
-.take{background:#1a1f26;border:1px solid #2a2f38;border-radius:6px;padding:6px;margin:6px 0}.take input{width:100%;margin-bottom:4px}.take audio{width:100%;height:30px}.take .r{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.take button{padding:3px 7px;font-size:12px}
-#cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:30vh;color:#fc0;background:rgba(0,0,0,.55);z-index:5}
-#help{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:10}#help div{background:#161a20;padding:20px 30px;border-radius:10px;max-width:560px;line-height:1.7}
+.take{background:#1a1f26;border:1px solid #2a2f38;border-radius:6px;padding:6px;margin:6px 0}.take input{width:100%;margin-bottom:4px}.take audio{width:100%;height:36px}.take .r{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.take button{padding:8px 10px;font-size:13px;min-height:40px}
+#cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:28vh;color:#fc0;background:rgba(0,0,0,.55);z-index:5}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:40;padding:16px}#help div{background:#161a20;padding:20px 24px;border-radius:10px;max-width:560px;width:100%;line-height:1.7;max-height:90dvh;overflow:auto}
 kbd{background:#2a3340;border-radius:4px;padding:1px 6px;font-family:monospace}
-#status{position:absolute;right:12px;top:8px;background:rgba(0,0,0,.6);padding:4px 10px;border-radius:5px;font-size:14px;z-index:4}
+#status{position:absolute;right:12px;top:8px;background:rgba(0,0,0,.6);padding:4px 10px;border-radius:5px;font-size:14px;z-index:4;max-width:70%;text-align:right}
 body.fs #side{display:none}body.fs #bar{display:none}
-#err{display:none;position:fixed;left:50%;top:70px;transform:translateX(-50%);max-width:90vw;width:620px;background:#3a1014;border:2px solid #e33;color:#fff;padding:14px 18px;border-radius:10px;z-index:20;font-size:15px;line-height:1.5}
-#err button{margin-top:8px}#touch{display:none;position:fixed;left:0;right:0;bottom:0;gap:8px;padding:10px;background:rgba(22,26,32,.95);z-index:6;justify-content:center}#touch button{flex:1;font-size:18px;padding:14px 6px;max-width:220px}
-@media (max-width:900px),(pointer:coarse){#touch{display:flex}#main{flex-direction:column}#side{width:auto;max-height:38vh;border-left:0;border-top:1px solid #2a2f38}#bar{font-size:12px;gap:6px 10px}#text{padding-left:5%;padding-right:5%}#side{padding-bottom:80px}}
+#err{display:none;position:fixed;left:50%;top:max(70px,calc(12px + var(--safe-t)));transform:translateX(-50%);max-width:90vw;width:620px;background:#3a1014;border:2px solid #e33;color:#fff;padding:14px 18px;border-radius:10px;z-index:50;font-size:15px;line-height:1.5}
+#err button{margin-top:8px;min-height:44px}
+#backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:16}
+#dock{display:none;flex-direction:column;gap:8px;padding:8px 12px calc(10px + var(--safe-b));background:#12161b;border-top:1px solid #2a2f38;flex-shrink:0;z-index:8}
+#dockMeter{height:8px;background:#222;border-radius:4px;overflow:hidden}#dockLvl{height:100%;width:0;background:linear-gradient(90deg,#2c6,#cc2 70%,#e33)}
+#dockMain,#dockAdj{display:flex;gap:8px;align-items:stretch}
+#dockMain button,#dockAdj button{flex:1;min-height:48px;font-size:16px;font-weight:600;padding:8px 6px}
+#dockAdj .grp{flex:1;display:flex;gap:6px;align-items:center;min-width:0}
+#dockAdj .grp span{font-size:12px;color:#9aa3ad;min-width:2.6em}
+#dockAdj .grp button{flex:1}
+#panelBtn{min-height:40px}
+#sheet{display:none;position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:16px 12px calc(16px + var(--safe-b))}
+#sheet.open{display:flex}
+.sheet-card{background:#161a20;width:100%;max-width:440px;border-radius:16px;padding:20px 18px;border:1px solid #2a2f38;max-height:90dvh;overflow:auto}
+.sheet-card h2{margin:0 0 8px;color:#fc0;font-size:1.35rem}
+.sheet-card .hint{color:#c8cdd3;margin:0 0 14px;line-height:1.45;font-size:15px}
+.sheet-card audio{width:100%;margin-bottom:14px}
+.sheet-card .btn-col{display:flex;flex-direction:column;gap:8px}
+.sheet-card button{min-height:48px;font-size:16px;width:100%}
+.sheet-card button.primary{background:#e6b800;color:#111;border-color:#fc0;font-weight:700}
+.sheet-card button.primary:hover{background:#f0c62a}
+.sheet-card button.danger{background:#3a1518;border-color:#6a2a30}
+#mobOnly{display:none}
 html[lang=de] .l-en,html[lang=en] .l-de{display:none}
+@media (min-width:821px){
+  #dock{display:none !important}
+  #panelBtn{display:none !important}
+  .mob-extra{display:none !important}
+}
+@media (max-width:820px){
+  #bar{gap:6px 8px;padding:8px 10px;flex-wrap:nowrap}
+  #bar b{flex:0 1 auto;overflow:visible;text-overflow:unset;white-space:nowrap}
+  .brand-full{display:none}
+  #bar button{white-space:nowrap;flex-shrink:0}
+  #bar .desk-only{display:none !important}
+  #mobOnly{display:inline-flex}
+  #panelBtn{margin-left:auto;flex:0 0 auto}
+  #main{flex-direction:column}
+  #side{display:none;position:fixed;left:0;right:0;bottom:0;width:100%;max-height:78dvh;z-index:18;border-left:0;border-top:1px solid #2a2f38;border-radius:16px 16px 0 0;padding-bottom:calc(12px + var(--safe-b))}
+  body.panel-open #side{display:flex}
+  body.panel-open #backdrop{display:block}
+  body.fs #dock{display:flex}
+  #dock{display:flex}
+  #text{padding-left:5%;padding-right:5%}
+  #status{font-size:13px;left:10px;right:10px;max-width:none;text-align:left}
+}
 </style></head><body>
 <div id="bar">
-<b style="color:#fc0">🎙 VO-Teleprompter</b>
-<label><span data-en="Project">Projekt</span> <input type="text" id="proj" size="12" value="voiceover"></label>
-<label><span data-en="Font">Schrift</span> <input type="range" id="fsz" min="24" max="120" value="56"><span id="fszv">56</span></label>
-<label><span data-en="Speed">Tempo</span> <input type="range" id="spd" min="0" max="300" value="60"><span id="spdv">60</span> px/s</label>
-<label><span data-en="Reading line">Leselinie</span> <input type="range" id="fpos" min="20" max="70" value="40">%</label>
-<label><input type="checkbox" id="mir"> <span data-en="Mirror">Spiegeln</span></label>
-<label><input type="checkbox" id="ssm"> <span data-en="Sentence-by-sentence">Satz-für-Satz-Modus</span></label>
-<button id="go">▶ Start</button><button id="recBtn" class="rec" data-en="● Record">● Aufnahme</button>
-<button id="top" data-en="⤒ Top">⤒ Anfang</button><button id="fsBtn" data-en="⛶ Fullscreen">⛶ Vollbild</button><button id="hlp" data-en="? Help">? Hilfe</button>
+<b style="color:#fc0">🎙 VO<span class="brand-full">-Teleprompter</span></b>
+<label class="desk-only"><span data-en="Project">Projekt</span> <input type="text" id="proj" size="12" value="voiceover"></label>
+<label class="desk-only"><span data-en="Font">Schrift</span> <input type="range" id="fsz" min="24" max="120" value="56"><span id="fszv">56</span></label>
+<label class="desk-only"><span data-en="Speed">Tempo</span> <input type="range" id="spd" min="0" max="300" value="60"><span id="spdv">60</span> px/s</label>
+<label class="desk-only"><span data-en="Reading line">Leselinie</span> <input type="range" id="fpos" min="20" max="70" value="40">%</label>
+<label class="desk-only"><input type="checkbox" id="mir"> <span data-en="Mirror">Spiegeln</span></label>
+<label class="desk-only"><input type="checkbox" id="ssm"> <span data-en="Sentence-by-sentence">Satz-für-Satz-Modus</span></label>
+<button class="desk-only" id="go">▶ Start</button><button class="desk-only rec" id="recBtn" data-en="● Record">● Aufnahme</button>
+<button class="desk-only" id="top" data-en="⤒ Top">⤒ Anfang</button><button class="desk-only" id="fsBtn" data-en="⛶ Fullscreen">⛶ Vollbild</button>
+<button id="panelBtn" data-en="Text &amp; mic">Text &amp; Mikro</button>
+<button id="hlp" title="Hilfe / Help">?<span class="desk-only" data-en=" Help"> Hilfe</span></button>
 <button id="langBtn" title="Sprache / Language">DE | EN</button>
 </div>
 <div id="main"><div id="stage"><div id="status"></div><div id="scroller"><div id="text"></div></div><div id="band"></div><div id="cd">3</div></div>
@@ -54,6 +111,14 @@ html[lang=de] .l-en,html[lang=en] .l-de{display:none}
 <div style="margin-top:8px" id="meter"><div id="lvl"></div></div>
 <div>Peak: <span id="peak">-∞</span> dBFS <span id="clip" data-en="⚠ CLIPPING">⚠ ÜBERSTEUERT</span></div>
 </section>
+<h3 class="mob-extra" data-en="Display">Anzeige</h3>
+<section class="mob-extra" id="mobDisp">
+<label><input type="checkbox" id="mir2"> <span data-en="Mirror">Spiegeln</span></label><br>
+<label><input type="checkbox" id="ssm2"> <span data-en="Sentence-by-sentence">Satz-für-Satz-Modus</span></label><br>
+<label><span data-en="Reading line">Leselinie</span> <input type="range" id="fpos2" min="20" max="70" value="40">%</label>
+<button id="top2" data-en="⤒ Top">⤒ Anfang</button>
+<button id="fsBtn2" data-en="⛶ Fullscreen">⛶ Vollbild</button>
+</section>
 <h3>Text</h3><section>
 <textarea id="src" data-en-ph="Paste text here… blank line = new paragraph, [PAUSE] = marker" placeholder="Text hier einfügen… Leerzeile = neuer Absatz, [PAUSE] = Marker"></textarea>
 <button id="apply" data-en="Use text">Text übernehmen</button> <button id="fileBtn" data-en="Load .txt">.txt laden</button><input type="file" id="file" accept=".txt,text/plain" hidden>
@@ -64,8 +129,30 @@ html[lang=de] .l-en,html[lang=en] .l-de{display:none}
 <button id="dlAll" data-en="Download all (ZIP)">Alle herunterladen (ZIP)</button> <button id="dlEach" data-en="individually">einzeln</button>
 <div id="takes"></div></section>
 </div></div>
+<div id="backdrop"></div>
+<div id="dock">
+<div id="dockMeter"><div id="dockLvl"></div></div>
+<div id="dockMain">
+<button id="dockRec" class="rec" data-en="● Record">● Aufnahme</button>
+<button id="dockPause" data-en="⏸ Pause" disabled>⏸ Pause</button>
+</div>
+<div id="dockAdj">
+<div class="grp"><span>Aa</span><button id="fsMinus" aria-label="Schrift kleiner">−</button><button id="fsPlus" aria-label="Schrift größer">+</button></div>
+<div class="grp"><span data-en="Speed">Tempo</span><button id="spdMinus" aria-label="Langsamer">−</button><button id="spdPlus" aria-label="Schneller">+</button></div>
+</div>
+</div>
+<div id="sheet" aria-hidden="true"><div class="sheet-card">
+<h2 id="sheetTitle">Take fertig</h2>
+<p class="hint" id="sheetHint"></p>
+<audio id="sheetAudio" controls></audio>
+<div class="btn-col">
+<button type="button" class="primary" id="shareTake" data-en="Send / Share">Senden / Teilen</button>
+<button type="button" id="dlTake" data-en="Download">Herunterladen</button>
+<button type="button" id="redoTake" data-en="Record again">Nochmal aufnehmen</button>
+<button type="button" class="danger" id="discardTake" data-en="Discard">Verwerfen</button>
+</div>
+</div></div>
 <div id="err"><b>⚠</b><div id="errMsg"></div><button onclick="this.parentNode.style.display='none'">OK</button></div>
-<div id="touch"><button id="tGo">▶ Start</button><button id="tNext" data-en="⏭ Next sentence">⏭ Nächster Satz</button><button id="tRedo" data-en="↺ Redo sentence">↺ Satz neu</button></div>
 <div id="help"><div>
 <div class="l-de"><h2 style="margin-top:0">Tastenkürzel</h2>
 <kbd>Leertaste</kbd> Start (3-2-1 + Aufnahme) / Stopp<br><kbd>↑</kbd>/<kbd>↓</kbd> Tempo − / +<br>
@@ -73,14 +160,14 @@ html[lang=de] .l-en,html[lang=en] .l-de{display:none}
 <kbd>+</kbd>/<kbd>−</kbd> Schriftgröße · <kbd>M</kbd> Spiegeln · <kbd>F</kbd> Vollbild · <kbd>Esc</kbd> Stopp<br>
 <b>Satz-für-Satz-Modus:</b> <kbd>Enter</kbd> nächster Satz (eigener Take) · <kbd>R</kbd> Satz neu aufnehmen<br>
 <kbd>H</kbd> / <kbd>?</kbd> diese Hilfe<br><br>
-Ablauf: Mikro aktivieren → Leertaste → nach 3-2-1 sprechen → Leertaste stoppt → Takes herunterladen. Je Take: WAV (48 kHz mono) + JSON mit Satz-Zeitmarken. Auf dem Handy die Touch-Buttons unten nutzen.</div>
+Ablauf: Mikro aktivieren (oder direkt aufnehmen – der Browser fragt dann nach dem Mikrofon) → Start → nach 3-2-1 sprechen → Stopp. Danach erscheint eine Karte: Take anhören, per <b>Senden / Teilen</b> die WAV-Datei weitergeben oder herunterladen. Teile die WAV-Datei in den Chat mit deinem Assistenten. Am Handy die großen Tasten unten nutzen; Text, Mikrofon und ältere Takes stecken hinter <b>Text &amp; Mikro</b>. Jeder Take: WAV (48 kHz mono) plus JSON mit Satz-Zeitmarken.</div>
 <div class="l-en"><h2 style="margin-top:0">Keyboard shortcuts</h2>
 <kbd>Space</kbd> start (3-2-1 + recording) / stop<br><kbd>↑</kbd>/<kbd>↓</kbd> speed − / +<br>
 <kbd>PgUp</kbd>/<kbd>PgDn</kbd> or mouse wheel: scroll manually · <kbd>Home</kbd> back to top<br>
 <kbd>+</kbd>/<kbd>−</kbd> font size · <kbd>M</kbd> mirror · <kbd>F</kbd> fullscreen · <kbd>Esc</kbd> stop<br>
 <b>Sentence-by-sentence mode:</b> <kbd>Enter</kbd> next sentence (own take) · <kbd>R</kbd> redo sentence<br>
 <kbd>H</kbd> / <kbd>?</kbd> this help<br><br>
-Workflow: enable mic → Space → speak after 3-2-1 → Space stops → download takes. Each take: WAV (48 kHz mono) + JSON with sentence timestamps. On phones use the touch buttons at the bottom.</div>
+Workflow: enable the mic (or just record – the browser will ask for permission) → Start → speak after 3-2-1 → Stop. A card then appears so you can listen back, <b>Send / Share</b> the WAV, or download it. Share the WAV file in the chat with your assistant. On a phone use the large buttons at the bottom; text, microphone settings and earlier takes live behind <b>Text &amp; mic</b>. Each take: WAV (48 kHz mono) plus JSON with sentence timestamps.</div>
 <br><button onclick="this.closest('#help').style.display='none'" data-en="Close">Schließen</button></div></div>
 <script id="script-text" type="text/plain"></script>
 <script>
@@ -88,15 +175,17 @@ Workflow: enable mic → Space → speak after 3-2-1 → Space stops → downloa
 const $=id=>document.getElementById(id);
 const LS='vo-tp-lang';let LANG=(localStorage.getItem(LS)||((navigator.language||'en').toLowerCase().startsWith('de')?'de':'en'));
 function T(de,en){return LANG==='de'?de:en}
-const SAMPLE_DE="Willkommen beim VO-Teleprompter. Dieser Text ist nur ein Beispiel.\n\nFügen Sie rechts Ihren eigenen Text ein und klicken Sie auf „Text übernehmen“. [PAUSE] Leerzeilen trennen Absätze.\n\nMit der Leertaste starten Sie den Countdown. Danach laufen Text und Aufnahme gleichzeitig. Viel Erfolg!";
-const SAMPLE_EN="Welcome to the VO teleprompter. This text is just an example.\n\nPaste your own script on the right and click “Use text”. [PAUSE] Blank lines separate paragraphs.\n\nPress the space bar to start the countdown. Then the text scrolls and recording runs at the same time. Good luck!";
+const SAMPLE_DE="Willkommen beim VO-Teleprompter. Dieser Text ist nur ein Beispiel.\n\nFügen Sie Ihren eigenen Text ein (Menü „Text & Mikro“) und tippen Sie auf „Text übernehmen“. [PAUSE] Leerzeilen trennen Absätze.\n\nStartet die Aufnahme, spricht nach dem Countdown und stoppt danach. Viel Erfolg!";
+const SAMPLE_EN="Welcome to the VO teleprompter. This text is just an example.\n\nPaste your own script (via “Text & mic”) and tap “Use text”. [PAUSE] Blank lines separate paragraphs.\n\nStart recording, speak after the countdown, then stop. Good luck!";
 function applyLang(){document.documentElement.lang=LANG;document.querySelectorAll('[data-en]').forEach(el=>{if(el.dataset.de===undefined)el.dataset.de=el.textContent;el.textContent=LANG==='en'?el.dataset.en:el.dataset.de});
  document.querySelectorAll('[data-en-ph]').forEach(el=>{if(el.dataset.dePh===undefined)el.dataset.dePh=el.placeholder;el.placeholder=LANG==='en'?el.dataset.enPh:el.dataset.dePh});
- $('langBtn').innerHTML=LANG==='de'?'<b>DE</b> | EN':'DE | <b>EN</b>';$('go').textContent=T('▶ Start (Leertaste)','▶ Start (Space)')}
+ $('langBtn').innerHTML=LANG==='de'?'<b>DE</b> | EN':'DE | <b>EN</b>';$('go').textContent=T('▶ Start (Leertaste)','▶ Start (Space)');setPanel(document.body.classList.contains('panel-open'));syncDock()}
 
 const SR=48000;let ctx=null,stream=null,srcNode=null,procNode=null,analyser=null,ctxRate=SR;
 let recording=false,chunks=[],recStart=0,marks=[],takes=[],takeNo=0,clipHold=0;
 let playing=false,speed=60,lastT=0,sentences=[],curIdx=-1,countdown=false,ssIdx=0,posAcc=0;
+let paused=false,pauseAcc=0,pauseStarted=0,suppressSheet=false,sheetTake=null,wakeLock=null,recMode='',mrec=null,mparts=[];
+const MOB=()=>matchMedia('(max-width:820px)').matches;
 // ---------- Text ----------
 function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 function render(txt){const box=$('text');box.innerHTML='';sentences=[];
@@ -109,38 +198,59 @@ function render(txt){const box=$('text');box.innerHTML='';sentences=[];
   box.appendChild(P)});
  curIdx=-1;ssIdx=0;$('scroller').scrollTop=0;updateCur(true)}
 function focusY(){const st=$('stage').getBoundingClientRect();return st.top+st.height*(+$('fpos').value/100)}
+function recTime(){return now()-recStart-pauseAcc-(paused?now()-pauseStarted:0)}
 function updateCur(force){const y=focusY();let idx=-1;
  for(let i=0;i<sentences.length;i++){const r=sentences[i].el.getBoundingClientRect();if(r.top<=y+4){idx=i}else break}
  if($('ssm').checked&&recording)idx=ssIdx;
  if(idx!==curIdx||force){curIdx=idx;sentences.forEach((s,i)=>{s.el.classList.toggle('cur',i===idx);s.el.classList.toggle('done',i<idx)});
-  if(recording&&idx>=0)marks.push({t:+((now()-recStart)).toFixed(3),sentence:idx,paragraph:sentences[idx].para,text:sentences[idx].text})}}
+  if(recording&&!paused&&idx>=0)marks.push({t:+(recTime()).toFixed(3),sentence:idx,paragraph:sentences[idx].para,text:sentences[idx].text})}}
 // ---------- Scroll ----------
 function loop(t){const dt=lastT?(t-lastT)/1000:0;lastT=t;
- if(playing&&!$('ssm').checked){posAcc+=speed*dt;const s=$('scroller');if(posAcc>=1){const n=Math.floor(posAcc);s.scrollTop+=n;posAcc-=n}
-  if(s.scrollTop+s.clientHeight>=s.scrollHeight-2){}}
+ if(playing&&!paused&&!$('ssm').checked){posAcc+=speed*dt;const s=$('scroller');if(posAcc>=1){const n=Math.floor(posAcc);s.scrollTop+=n;posAcc-=n}}
  updateCur(false);meter();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 function setSpeed(v){speed=Math.max(0,Math.min(300,v));$('spd').value=speed;$('spdv').textContent=speed}
 function setFs(v){v=Math.max(24,Math.min(120,v));$('fsz').value=v;$('fszv').textContent=v;$('text').style.fontSize=v+'px';if(window.padFix)padFix()}
 $('spd').oninput=e=>setSpeed(+e.target.value);$('fsz').oninput=e=>setFs(+e.target.value);
 window.padFix=padFix;function padFix(){const h=$('stage').clientHeight,f=+$('fpos').value/100;document.documentElement.style.setProperty('--fp',(f*100)+'%');$('text').style.paddingTop=Math.round(h*f-parseFloat($('text').style.fontSize||56)*0.5)+'px';$('text').style.paddingBottom=Math.round(h)+'px'}
-$('fpos').oninput=padFix;window.addEventListener('resize',padFix);
-$('mir').onchange=e=>$('text').classList.toggle('mirror',e.target.checked);
+$('fpos').oninput=e=>{if($('fpos2'))$('fpos2').value=e.target.value;padFix()};window.addEventListener('resize',padFix);
+$('mir').onchange=e=>{$('text').classList.toggle('mirror',e.target.checked);if($('mir2'))$('mir2').checked=e.target.checked};
 $('top').onclick=()=>{$('scroller').scrollTop=0;ssIdx=0};
 $('fsBtn').onclick=toggleFs;$('hlp').onclick=()=>$('help').style.display='flex';
 function toggleFs(){if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});document.body.classList.add('fs')}else{document.exitFullscreen();}}
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)document.body.classList.remove('fs')});
 function status(s){$('status').textContent=s}
+function setPanel(open){document.body.classList.toggle('panel-open',open);$('panelBtn').textContent=open?T('Schließen','Close'):T('Text & Mikro','Text & mic')}
+$('panelBtn').onclick=()=>setPanel(!document.body.classList.contains('panel-open'));
+$('backdrop').onclick=()=>setPanel(false);
+$('fsMinus').onclick=()=>setFs(+$('fsz').value-4);$('fsPlus').onclick=()=>setFs(+$('fsz').value+4);
+$('spdMinus').onclick=()=>setSpeed(speed-10);$('spdPlus').onclick=()=>setSpeed(speed+10);
+if($('fpos2')){$('fpos2').oninput=e=>{$('fpos').value=e.target.value;padFix()};
+ $('mir2').onchange=e=>{$('mir').checked=e.target.checked;$('mir').onchange({target:$('mir')})};
+ $('ssm2').onchange=e=>{$('ssm').checked=e.target.checked;$('ssm').onchange({target:$('ssm')})};
+ $('top2').onclick=()=>$('top').onclick();$('fsBtn2').onclick=toggleFs}
+
+function syncDock(){const active=recording||playing||paused;
+ $('dockRec').textContent=recording?T('■ Stopp','■ Stop'):T('● Aufnahme','● Record');
+ $('dockRec').classList.toggle('on',recording&&!paused);
+ $('dockPause').disabled=!active;
+ $('dockPause').textContent=paused?T('▶ Weiter','▶ Resume'):T('⏸ Pause','⏸ Pause');
+ if(MOB())$('recBtn').textContent=$('dockRec').textContent}
 // ---------- Audio ----------
 function now(){return ctx?ctx.currentTime:performance.now()/1000}
+async function resumeCtx(){if(ctx&&ctx.state==='suspended'){try{await ctx.resume()}catch(e){}}}
+async function requestWake(){try{if(navigator.wakeLock&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}}catch(e){}}
+function releaseWake(){try{if(wakeLock){wakeLock.release();wakeLock=null}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&(playing||recording||sheetTake))$requestSafe()});
+function $requestSafe(){requestWake()}
 async function listMics(){try{const d=(await navigator.mediaDevices.enumerateDevices()).filter(x=>x.kind==='audioinput');const sel=$('mic'),cur=sel.value;sel.innerHTML='';
  d.forEach((x,i)=>{const o=document.createElement('option');o.value=x.deviceId;o.textContent=x.label||(T('Mikrofon ','Microphone ')+(i+1));sel.appendChild(o)});if(cur)sel.value=cur}catch(e){console.warn(e)}}
 const WORKLET=`class R extends AudioWorkletProcessor{process(i){const c=i[0];if(c&&c[0])this.port.postMessage(c[0].slice(0));return true}}registerProcessor('rec-proc',R);`;
-let mrec=null,mparts=[],recMode='';
 function showErr(html){$('errMsg').innerHTML=html;$('err').style.display='block';status('Fehler – siehe Hinweis')}
 function MICHELP(){return T('<br><b>So gibst du das Mikrofon frei:</b><ol style="margin:6px 0 0 18px;padding:0"><li>Links in der Adressleiste auf das <b>Schloss-/Einstellungs-Symbol</b> → <b>Mikrofon → Zulassen</b> → Seite neu laden.</li><li>Windows: <b>Einstellungen → Datenschutz &amp; Sicherheit → Mikrofon</b> → „Mikrofonzugriff“, „Apps den Zugriff erlauben“ und „Desktop-Apps den Zugriff erlauben“ einschalten.</li><li>Chrome/Edge/Brave: <b>chrome://settings/content/microphone</b> (Edge: edge://…, Brave: brave://…) öffnen → richtiges Mikrofon wählen, diese Seite nicht unter „Nicht zulässig“.</li><li>Brave: falls weiter blockiert, auf das <b>Löwen-Symbol (Shields)</b> klicken und Shields für diese Seite ausschalten.</li><li>iPhone/iPad: Einstellungen → Apps → Safari → Mikrofon → Erlauben.</li></ol>','<br><b>How to allow the microphone:</b><ol style="margin:6px 0 0 18px;padding:0"><li>Click the <b>lock/site-settings icon</b> left of the address bar → <b>Microphone → Allow</b> → reload.</li><li>Windows: <b>Settings → Privacy &amp; security → Microphone</b> → turn on “Microphone access”, “Let apps access” and “Let desktop apps access”.</li><li>Chrome/Edge/Brave: open <b>chrome://settings/content/microphone</b> (edge://…, brave://…) → pick the right mic, make sure this site is not under “Not allowed”.</li><li>Brave: if still blocked, click the <b>lion icon (Shields)</b> and turn Shields off for this site.</li><li>iPhone/iPad: Settings → Apps → Safari → Microphone → Allow.</li></ol>')}
 async function micOn(){
  $('err').style.display='none';
+ await resumeCtx();
  if(!window.isSecureContext){showErr(T('Diese Seite läuft nicht über HTTPS (oder wurde als Datei geöffnet). Browser erlauben das Mikrofon nur über https:// oder localhost. Bitte den Link öffnen statt einer heruntergeladenen Datei.','This page is not served over HTTPS (or was opened as a local file). Browsers only allow the microphone on https:// or localhost. Please open the link instead of a downloaded file.'));return false}
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showErr(T('Dieser Browser bietet keinen Mikrofonzugriff an. Bitte aktuelles Chrome, Edge, Brave, Firefox oder Safari verwenden.','This browser offers no microphone access. Please use a current Chrome, Edge, Brave, Firefox or Safari.'));return false}
  if(stream)stream.getTracks().forEach(t=>t.stop());
@@ -157,10 +267,10 @@ async function micOn(){
  const AC=window.AudioContext||window.webkitAudioContext;
  try{ctx=new AC({sampleRate:SR});srcNode=ctx.createMediaStreamSource(stream)}
  catch(e){ctx=new AC();srcNode=ctx.createMediaStreamSource(stream)}
- if(ctx.state==='suspended'){try{await ctx.resume()}catch(e){}}
+ await resumeCtx();
  ctxRate=ctx.sampleRate;
  analyser=ctx.createAnalyser();analyser.fftSize=2048;srcNode.connect(analyser);
- const onData=d=>{if(recording)chunks.push(d)};procNode=null;recMode='';
+ const onData=d=>{if(recording&&!paused)chunks.push(d)};procNode=null;recMode='';
  try{if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('kein AudioWorklet');
   try{await ctx.audioWorklet.addModule('rec-worklet.js')}catch(e1){await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET],{type:'application/javascript'})))}
   procNode=new AudioWorkletNode(ctx,'rec-proc',{numberOfInputs:1,numberOfOutputs:1,channelCount:1,channelCountMode:'explicit'});procNode.port.onmessage=e=>onData(e.data);recMode='AudioWorklet'}
@@ -176,26 +286,57 @@ $('micTest').onclick=async()=>{if(!stream&&!(await micOn()))return;if(recording)
   r.style.color=db<-45?'#e88':db>-0.5?'#ea5':'#9c9';r.textContent=T('Spitze ','Peak ')+db.toFixed(1)+' dBFS – '+(db<-45?T('zu leise/kein Signal: Mikrofon prüfen','too quiet/no signal: check microphone'):db>-0.5?T('übersteuert: Pegel am Mikro/Interface senken','clipping: lower the input gain'):db<-20?'etwas leise, aber nutzbar (ideal −12 bis −6)':'Pegel gut ✔')}},50)};['ec','ns','ag','mic'].forEach(id=>$(id).onchange=()=>{if(stream)micOn()});
 const mbuf=new Float32Array(2048);
 function meter(){if(!analyser)return;analyser.getFloatTimeDomainData(mbuf);let p=0;for(const v of mbuf){const a=Math.abs(v);if(a>p)p=a}
- const db=p>0?20*Math.log10(p):-120;$('lvl').style.width=Math.max(0,Math.min(100,(db+60)/60*100))+'%';$('peak').textContent=db<-119?'-∞':db.toFixed(1);
+ const db=p>0?20*Math.log10(p):-120;const w=Math.max(0,Math.min(100,(db+60)/60*100))+'%';$('lvl').style.width=w;$('dockLvl').style.width=w;$('peak').textContent=db<-119?'-∞':db.toFixed(1);
  if(p>=0.98)clipHold=performance.now()+1500;$('clip').style.visibility=performance.now()<clipHold?'visible':'hidden'}
+function pickMime(){if(!window.MediaRecorder)return '';const types=['audio/mp4','audio/aac','audio/webm;codecs=opus','audio/webm'];for(const t of types){try{if(MediaRecorder.isTypeSupported(t))return t}catch(e){}}return ''}
+function extOf(type){type=(type||'').toLowerCase();if(type.includes('wav'))return '.wav';if(type.includes('mpeg')||type.includes('mp3'))return '.mp3';if(type.includes('aac'))return '.aac';if(type.includes('mp4')||type.includes('m4a'))return '.m4a';if(type.includes('ogg'))return '.ogg';if(type.includes('webm'))return '.webm';return '.m4a'}
 // ---------- Recording ----------
-function startRec(){chunks=[];if(recMode==='MediaRecorder'){mparts=[];mrec=new MediaRecorder(stream);mrec.ondataavailable=e=>e.data.size&&mparts.push(e.data);mrec.start(250)}marks=[];recStart=now();recording=true;$('recBtn').classList.add('on');curIdx=-2;updateCur(true);if(!marks.length){const i=Math.max(0,curIdx);if(sentences[i])marks.push({t:0,sentence:i,paragraph:sentences[i].para,text:sentences[i].text})}status('● AUFNAHME')}
-function stopRec(label){if(!recording)return;recording=false;$('recBtn').classList.remove('on');
- if(recMode==='MediaRecorder'&&mrec){const mr=mrec,mk=marks.slice(),dur0=now()-recStart;mrec=null;mr.onstop=async()=>{try{const ab=await new Blob(mparts,{type:mr.mimeType}).arrayBuffer();const ab2=await new Promise((r,j)=>{const pr=ctx.decodeAudioData(ab,r,j);if(pr&&pr.then)pr.then(r,j)});
-   let pcm=ab2.getChannelData(0);if(ab2.sampleRate!==SR)pcm=resample(pcm,ab2.sampleRate,SR);finishTake(pcm,label,mk)}catch(e){showErr('Aufnahme konnte nicht umgewandelt werden: '+esc(String(e)))}};mr.stop();return}
+function startRec(){chunks=[];paused=false;pauseAcc=0;if(recMode==='MediaRecorder'){mparts=[];const mime=pickMime();try{mrec=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream)}catch(e){mrec=new MediaRecorder(stream)}mrec.ondataavailable=e=>e.data.size&&mparts.push(e.data);mrec.start(250)}marks=[];recStart=now();recording=true;$('recBtn').classList.add('on');curIdx=-2;updateCur(true);if(!marks.length){const i=Math.max(0,curIdx);if(sentences[i])marks.push({t:0,sentence:i,paragraph:sentences[i].para,text:sentences[i].text})}status('● AUFNAHME');syncDock();requestWake()}
+function stopRec(label){if(!recording)return;if(paused){pauseAcc+=now()-pauseStarted;paused=false}recording=false;$('recBtn').classList.remove('on');syncDock();
+ if(recMode==='MediaRecorder'&&mrec){const mr=mrec,mk=marks.slice(),dur0=recTime(),lab=label;mrec=null;
+  const finishRaw=()=>{const blob=new Blob(mparts,{type:mr.mimeType||'audio/mp4'});finishTake(null,lab,mk,{blob,ext:extOf(mr.mimeType),dur:dur0})};
+  mr.onstop=async()=>{try{const raw=new Blob(mparts,{type:mr.mimeType||'audio/mp4'});const ab=await raw.arrayBuffer();const ab2=await new Promise((r,j)=>{try{const pr=ctx.decodeAudioData(ab.slice(0),r,j);if(pr&&pr.then)pr.then(r,j)}catch(err){j(err)}});
+   let pcm=ab2.getChannelData(0);if(ab2.numberOfChannels>1){const L=ab2.length,m=new Float32Array(L);for(let i=0;i<L;i++){let s=0;for(let c=0;c<ab2.numberOfChannels;c++)s+=ab2.getChannelData(c)[i];m[i]=s/ab2.numberOfChannels}pcm=m}
+   if(ab2.sampleRate!==SR)pcm=resample(pcm,ab2.sampleRate,SR);finishTake(pcm,lab,mk)}catch(e){finishRaw()}};
+  try{if(mr.state==='paused')mr.resume()}catch(e){}
+  try{if(mr.state!=='inactive')mr.stop();else finishRaw()}catch(e){finishRaw()}return}
  let len=0;chunks.forEach(c=>len+=c.length);let pcm=new Float32Array(len),o=0;chunks.forEach(c=>{pcm.set(c,o);o+=c.length});chunks=[];
  if(ctxRate!==SR)pcm=resample(pcm,ctxRate,SR);finishTake(pcm,label,marks)}
-function finishTake(pcm,label,marks){
-const dur=pcm.length/SR;if(dur<0.2){status(T('Take zu kurz – verworfen','Take too short – discarded'));return}
+function finishTake(pcm,label,marks,raw){
+ const dur=pcm?pcm.length/SR:(raw&&raw.dur||0);if(dur<0.2){status(T('Take zu kurz – verworfen','Take too short – discarded'));return}
  takeNo++;const d=new Date(),ds=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+String(d.getSeconds()).padStart(2,'0');
  const proj=($('proj').value||'voiceover').replace(/[^\w\-]+/g,'_');
  const name=`vo_${proj}_take${String(takeNo).padStart(2,'0')}${label?'_'+label:''}_${ds}`;
- const bits=+$('bits').value;const wav=encodeWav(pcm,SR,bits);
- let pk=0;for(const v of pcm){const a=Math.abs(v);if(a>pk)pk=a}
- const side={file:name+'.wav',project:proj,take:takeNo,created:d.toISOString(),sampleRate:SR,channels:1,bitDepth:bits,duration_s:+dur.toFixed(3),peak_dBFS:pk>0?+(20*Math.log10(pk)).toFixed(2):null,
+ const bits=+$('bits').value;
+ let file,ext='.wav',pk=null;
+ if(pcm){file=encodeWav(pcm,SR,bits);let p=0;for(const v of pcm){const a=Math.abs(v);if(a>p)p=a}pk=p>0?+(20*Math.log10(p)).toFixed(2):null}
+ else{file=raw.blob;ext=raw.ext||'.m4a'}
+ const side={file:name+ext,project:proj,take:takeNo,created:d.toISOString(),sampleRate:pcm?SR:null,channels:1,bitDepth:pcm?bits:null,duration_s:+dur.toFixed(3),peak_dBFS:pk,
   settings:{echoCancellation:$('ec').checked,noiseSuppression:$('ns').checked,autoGainControl:$('ag').checked,device:$('mic').selectedOptions[0]?.textContent||''},
-  mode:$('ssm').checked?'sentence-by-sentence':'continuous',marks:marks.map((m,i)=>({...m,t:Math.max(0,m.t),end:i+1<marks.length?marks[i+1].t:+dur.toFixed(3)}))};
- takes.push({name,wav,side,url:URL.createObjectURL(wav)});renderTakes();status('Take '+takeNo+T(' gespeichert (',' saved (')+dur.toFixed(1)+' s)')}
+  mode:$('ssm').checked?'sentence-by-sentence':'continuous',format:pcm?'wav':(file.type||ext.replace('.','')),marks:marks.map((m,i)=>({...m,t:Math.max(0,m.t),end:i+1<marks.length?marks[i+1].t:+dur.toFixed(3)}))};
+ const take={name,wav:file,ext,side,url:URL.createObjectURL(file)};takes.push(take);renderTakes();
+ if(suppressSheet){suppressSheet=false;status(T('Take '+takeNo+' gespeichert – weiter','Take '+takeNo+' saved – next'));}
+ else showSheet(take)}
+function showSheet(t){sheetTake=t;setPanel(false);
+ $('sheetTitle').textContent=T('Take '+t.side.take+' fertig','Take '+t.side.take+' ready');
+ $('sheetHint').textContent=T('Teile die WAV-Datei in den Chat mit deinem Assistenten','Share the WAV file in the chat with your assistant');
+ const a=$('sheetAudio');a.src=t.url;a.load();
+ $('sheet').classList.add('open');$('sheet').setAttribute('aria-hidden','false');
+ status('');requestWake()}
+function closeSheet(){const open=$('sheet').classList.contains('open');$('sheet').classList.remove('open');$('sheet').setAttribute('aria-hidden','true');
+ const a=$('sheetAudio');try{a.pause()}catch(e){}
+ if(open)sheetTake=null;if(!playing&&!recording)releaseWake()}
+function fileOf(t){return new File([t.wav],t.name+t.ext,{type:t.wav.type||(t.ext==='.wav'?'audio/wav':'application/octet-stream')})}
+function jsonFile(t){return new File([sideBlob(t)],t.name+'.json',{type:'application/json'})}
+async function shareTake(t){const wav=fileOf(t),js=jsonFile(t);
+ try{if(navigator.share&&navigator.canShare){if(navigator.canShare({files:[wav,js]})){await navigator.share({files:[wav,js],title:t.name});return}
+   if(navigator.canShare({files:[wav]})){await navigator.share({files:[wav],title:t.name,text:T('Teile die WAV-Datei in den Chat mit deinem Assistenten','Share the WAV file in the chat with your assistant')});return}}}
+ catch(e){if(e&&e.name==='AbortError')return}
+ dl(t.wav,t.name+t.ext);dl(sideBlob(t),t.name+'.json')}
+$('shareTake').onclick=()=>sheetTake&&shareTake(sheetTake);
+$('dlTake').onclick=()=>{if(!sheetTake)return;dl(sheetTake.wav,sheetTake.name+sheetTake.ext);dl(sideBlob(sheetTake),sheetTake.name+'.json')};
+$('redoTake').onclick=()=>{closeSheet();$('scroller').scrollTop=0;ssIdx=0;start(true)};
+$('discardTake').onclick=()=>{if(!sheetTake)return;const t=sheetTake;if(t.url)URL.revokeObjectURL(t.url);const i=takes.indexOf(t);if(i>=0)takes.splice(i,1);renderTakes();closeSheet();status(T('Take verworfen','Take discarded'))};
 function resample(x,from,to){const n=Math.round(x.length*to/from),y=new Float32Array(n),r=from/to;for(let i=0;i<n;i++){const p=i*r,j=Math.floor(p),f=p-j;y[i]=(x[j]||0)*(1-f)+(x[j+1]||0)*f}return y}
 function encodeWav(x,sr,bits){const B=bits/8,len=x.length*B,buf=new ArrayBuffer(44+len),v=new DataView(buf);let o=0;
  const s=t=>{for(let i=0;i<t.length;i++)v.setUint8(o++,t.charCodeAt(i))},u32=n=>{v.setUint32(o,n,true);o+=4},u16=n=>{v.setUint16(o,n,true);o+=2};
@@ -203,14 +344,15 @@ function encodeWav(x,sr,bits){const B=bits/8,len=x.length*B,buf=new ArrayBuffer(
  for(let i=0;i<x.length;i++){let c=Math.max(-1,Math.min(1,x[i]));if(bits===16){v.setInt16(o,c<0?c*0x8000:c*0x7FFF,true);o+=2}
   else{let n=Math.round(c<0?c*0x800000:c*0x7FFFFF);if(n>0x7FFFFF)n=0x7FFFFF;v.setUint8(o,n&255);v.setUint8(o+1,(n>>8)&255);v.setUint8(o+2,(n>>16)&255);o+=3}}
  return new Blob([buf],{type:'audio/wav'})}
-function sideBlob(t){return new Blob([JSON.stringify({...t.side,file:t.name+'.wav'},null,2)],{type:'application/json'})}
+function sideBlob(t){return new Blob([JSON.stringify({...t.side,file:t.name+t.ext},null,2)],{type:'application/json'})}
 function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
 function renderTakes(){const box=$('takes');box.innerHTML='';$('cnt').textContent='('+takes.length+')';
  takes.slice().reverse().forEach(t=>{const d=document.createElement('div');d.className='take';
-  d.innerHTML=`<input type="text" value="${esc(t.name)}"><audio controls src="${t.url}"></audio><small>${t.side.duration_s} s · Peak ${t.side.peak_dBFS} dBFS · ${t.side.marks.length} Marker</small><div class="r"><button data-a="w">⬇ WAV</button><button data-a="j">⬇ JSON</button><button data-a="d">🗑 Löschen</button></div>`;
-  d.querySelector('input').onchange=e=>{t.name=e.target.value.replace(/[\\/:*?"<>|]+/g,'_').replace(/\.wav$/i,'')};
-  d.querySelector('[data-a=w]').onclick=()=>dl(t.wav,t.name+'.wav');d.querySelector('[data-a=j]').onclick=()=>dl(sideBlob(t),t.name+'.json');
-  d.querySelector('[data-a=d]').onclick=()=>{if(confirm(T('Take „'+t.name+'“ löschen?','Delete take “'+t.name+'”?'))){URL.revokeObjectURL(t.url);takes.splice(takes.indexOf(t),1);renderTakes()}};box.appendChild(d)})}
+  d.innerHTML=`<input type="text" value="${esc(t.name)}"><audio controls src="${t.url}"></audio><small>${t.side.duration_s} s · Peak ${t.side.peak_dBFS} dBFS · ${t.side.marks.length} Marker</small><div class="r"><button data-a="w">⬇ ${t.ext==='.wav'?'WAV':t.ext.slice(1).toUpperCase()}</button><button data-a="j">⬇ JSON</button><button data-a="s" data-en="Share">Teilen</button><button data-a="d">🗑 ${T('Löschen','Delete')}</button></div>`;
+  d.querySelector('input').onchange=e=>{t.name=e.target.value.replace(/[\\/:*?"<>|]+/g,'_').replace(/\.(wav|json|m4a|mp4|webm|aac)$/i,'')};
+  d.querySelector('[data-a=w]').onclick=()=>dl(t.wav,t.name+t.ext);d.querySelector('[data-a=j]').onclick=()=>dl(sideBlob(t),t.name+'.json');
+  d.querySelector('[data-a=s]').onclick=()=>shareTake(t);
+  d.querySelector('[data-a=d]').onclick=()=>{if(confirm(T('Take „'+t.name+'“ löschen?','Delete take “'+t.name+'”?'))){URL.revokeObjectURL(t.url);takes.splice(takes.indexOf(t),1);if(sheetTake===t)closeSheet();renderTakes()}};box.appendChild(d)})}
 // ---------- ZIP (store, ohne Bibliothek) ----------
 const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
@@ -223,30 +365,34 @@ async function makeZip(files){const enc=new TextEncoder(),parts=[],cen=[];let of
   cen.push(c.buffer,nm);off+=30+nm.length+data.length}
  let cl=0;cen.forEach(x=>cl+=x.byteLength);const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cl,true);e.setUint32(16,off,true);
  return new Blob([...parts,...cen,e.buffer],{type:'application/zip'})}
-$('dlAll').onclick=async()=>{if(!takes.length)return status(T('Keine Takes','No takes'));const f=[];takes.forEach(t=>{f.push({name:t.name+'.wav',blob:t.wav},{name:t.name+'.json',blob:sideBlob(t)})});
+$('dlAll').onclick=async()=>{if(!takes.length)return status(T('Keine Takes','No takes'));const f=[];takes.forEach(t=>{f.push({name:t.name+t.ext,blob:t.wav},{name:t.name+'.json',blob:sideBlob(t)})});
  dl(await makeZip(f),'vo_'+($('proj').value||'voiceover').replace(/[^\w\-]+/g,'_')+'_takes.zip')};
-$('dlEach').onclick=()=>{takes.forEach((t,i)=>setTimeout(()=>{dl(t.wav,t.name+'.wav');dl(sideBlob(t),t.name+'.json')},i*400))};
+$('dlEach').onclick=()=>{takes.forEach((t,i)=>setTimeout(()=>{dl(t.wav,t.name+t.ext);dl(sideBlob(t),t.name+'.json')},i*400))};
 // ---------- Ablauf ----------
 async function runCountdown(){countdown=true;const cd=$('cd');cd.style.display='flex';for(const n of[3,2,1]){cd.textContent=n;await new Promise(r=>setTimeout(r,1000))}cd.style.display='none';countdown=false}
-async function start(withRec){if(countdown)return;if(withRec&&!stream){if(!(await micOn()))return}if(ctx&&ctx.state==='suspended')await ctx.resume();
- await runCountdown();if(withRec)startRec();playing=true;lastT=0;$('go').textContent=T('⏸ Stopp (Leertaste)','⏸ Stop (Space)');if(!withRec)status(T('▶ läuft (ohne Aufnahme)','▶ running (not recording)'))}
-function stop(){playing=false;$('go').textContent=T('▶ Start (Leertaste)','▶ Start (Space)');if(recording)stopRec($('ssm').checked?'s'+String(ssIdx+1).padStart(2,'0'):'');else status(T('Pause','Paused'))}
-function toggle(){if(playing||recording)stop();else start(true)}
-$('go').onclick=toggle;$('recBtn').onclick=toggle;
+async function start(withRec){if(countdown)return;closeSheet();await resumeCtx();if(withRec&&!stream){if(!(await micOn()))return}await resumeCtx();
+ await runCountdown();if(withRec)startRec();playing=true;paused=false;lastT=0;$('go').textContent=T('⏸ Stopp (Leertaste)','⏸ Stop (Space)');if(!withRec)status(T('▶ läuft (ohne Aufnahme)','▶ running (not recording)'));syncDock();requestWake()}
+function stop(){if(paused){pauseAcc+=now()-pauseStarted;paused=false}playing=false;$('go').textContent=T('▶ Start (Leertaste)','▶ Start (Space)');if(recording)stopRec($('ssm').checked?'s'+String(ssIdx+1).padStart(2,'0'):'');else{status(T('Pause','Paused'));releaseWake()}syncDock()}
+function toggle(){if(paused){togglePause();return}if(playing||recording)stop();else start(true)}
+function togglePause(){if(!(recording||playing||paused))return;
+ if(!paused){paused=true;playing=false;pauseStarted=now();if(mrec&&mrec.state==='recording'){try{mrec.pause()}catch(e){}}status(T('Pause','Paused'))}
+ else{pauseAcc+=now()-pauseStarted;paused=false;playing=true;lastT=0;if(mrec&&mrec.state==='paused'){try{mrec.resume()}catch(e){}}resumeCtx();status(recording?'● AUFNAHME':T('▶ läuft','▶ running'))}
+ syncDock()}
+$('go').onclick=toggle;$('recBtn').onclick=toggle;$('dockRec').onclick=toggle;$('dockPause').onclick=togglePause;
 function ssGoto(i){ssIdx=Math.max(0,Math.min(sentences.length-1,i));const el=sentences[ssIdx].el,s=$('scroller');s.scrollTop+=el.getBoundingClientRect().top-focusY()+el.offsetHeight/3;updateCur(true)}
-function ssNext(){if(!recording)return start(true);stopRec('s'+String(ssIdx+1).padStart(2,'0'));if(ssIdx>=sentences.length-1){playing=false;status(T('Alle Sätze aufgenommen','All sentences recorded'));return}ssGoto(ssIdx+1);startRec()}
-function ssRedo(){if(!stream)return start(true);if(recording){recording=false;chunks=[];$('recBtn').classList.remove('on')}ssGoto(ssIdx);startRec();playing=true;status('● Satz '+(ssIdx+1)+' neu')}
-$('ssm').onchange=e=>{if(e.target.checked&&sentences.length)ssGoto(curIdx>0?curIdx:0)};
+function ssNext(){if(!recording)return start(true);const last=ssIdx>=sentences.length-1;suppressSheet=!last;stopRec('s'+String(ssIdx+1).padStart(2,'0'));if(last){playing=false;syncDock();return}ssGoto(ssIdx+1);startRec()}
+function ssRedo(){if(!stream)return start(true);if(recording){if(paused){pauseAcc+=now()-pauseStarted;paused=false}recording=false;chunks=[];$('recBtn').classList.remove('on')}ssGoto(ssIdx);startRec();playing=true;status('● Satz '+(ssIdx+1)+' neu');syncDock()}
+$('ssm').onchange=e=>{if($('ssm2'))$('ssm2').checked=e.target.checked;if(e.target.checked&&sentences.length)ssGoto(curIdx>0?curIdx:0)};
 document.addEventListener('keydown',e=>{const tag=(e.target.tagName||'');if(tag==='TEXTAREA'||(tag==='INPUT'&&e.target.type==='text'))return;
  const k=e.key;if(k===' '){e.preventDefault();toggle()}else if(k==='ArrowUp'){e.preventDefault();setSpeed(speed-10)}else if(k==='ArrowDown'){e.preventDefault();setSpeed(speed+10)}
  else if(k==='Enter'&&$('ssm').checked){e.preventDefault();ssNext()}else if((k==='r'||k==='R')&&$('ssm').checked){ssRedo()}
- else if(k==='+'){setFs(+$('fsz').value+4)}else if(k==='-'){setFs(+$('fsz').value-4)}else if(k==='m'||k==='M'){$('mir').click()}
+ else if(k==='+'||k==='='){setFs(+$('fsz').value+4)}else if(k==='-'){setFs(+$('fsz').value-4)}else if(k==='m'||k==='M'){$('mir').click()}
  else if(k==='f'||k==='F'){toggleFs()}else if(k==='h'||k==='H'||k==='?'){const h=$('help');h.style.display=h.style.display==='flex'?'none':'flex'}
- else if(k==='Escape'){$('help').style.display='none';if(playing||recording)stop()}else if(k==='Home'){$('scroller').scrollTop=0;ssIdx=0}});
+ else if(k==='Escape'){$('help').style.display='none';if($('sheet').classList.contains('open'))closeSheet();else if(playing||recording||paused)stop()}else if(k==='Home'){$('scroller').scrollTop=0;ssIdx=0}});
 $('apply').onclick=()=>render($('src').value);
 $('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;const t=await f.text();$('src').value=t;render(t);$('proj').value=f.name.replace(/\.txt$/i,'').replace(/[^\w\-]+/g,'_')};
 // Init
-setFs(matchMedia('(max-width:900px)').matches?34:56);padFix();
+setFs(MOB()?40:56);padFix();
 function b64d(x){x=x.replace(/-/g,'+').replace(/_/g,'/');while(x.length%4)x+='=';const b=atob(x),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
 async function inflate(u){if(!window.DecompressionStream)throw new Error(T('Browser zu alt für komprimierte Links','Browser too old for compressed links'));const ds=new DecompressionStream('deflate-raw');const st=new Blob([u]).stream().pipeThrough(ds);return new Uint8Array(await new Response(st).arrayBuffer())}
 async function loadFromUrl(){const h=new URLSearchParams(location.hash.slice(1)),q=new URLSearchParams(location.search);
@@ -254,7 +400,7 @@ async function loadFromUrl(){const h=new URLSearchParams(location.hash.slice(1))
  try{let txt='';const t=h.get('t');
   if(t){const kind=t[0],data=b64d(t.slice(1));txt=new TextDecoder().decode(kind==='z'?await inflate(data):data)}
   else if(q.get('src')){const r=await fetch(q.get('src'));if(!r.ok)throw new Error('Textdatei nicht ladbar (HTTP '+r.status+')');txt=await r.text()}
-  if(txt){$('src').value=txt;render(txt);status(T('Text geladen – „Mikro aktivieren“, dann Start','Text loaded – “Enable mic”, then Start'));return}
+  if(txt){$('src').value=txt;render(txt);status(T('Text geladen – Aufnahme starten','Text loaded – start recording'));return}
  }catch(e){showErr(T('Der Text aus dem Link konnte nicht gelesen werden: ','Could not read the text from the link: ')+esc(e.message||String(e)))}
  const smp=T(SAMPLE_DE,SAMPLE_EN);$('src').value=smp;render(smp);status(T('Bereit – Beispieltext. Eigenen Text einfügen und „Text übernehmen“.','Ready – sample text. Paste your own text and click “Use text”.'))}
 function b64e(u){let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
@@ -266,13 +412,12 @@ $('mkLink').onclick=async()=>{const txt=$('src').value;if(!txt.trim())return sta
  let ok=false;try{await navigator.clipboard.writeText(url);ok=true}catch(e){}
  $('linkInfo').textContent=url.length+T(' Zeichen',' characters')+(ok?T(' · in die Zwischenablage kopiert',' · copied to clipboard'):T(' · bitte markieren und kopieren',' · select and copy'))+(url.length>2000?T(' · Achtung: sehr lang, evtl. ?src= nutzen',' · warning: very long, consider ?src='):'')};
 $('fileBtn').onclick=()=>$('file').click();
-$('langBtn').onclick=()=>{LANG=LANG==='de'?'en':'de';localStorage.setItem(LS,LANG);applyLang();if(!location.hash&&!location.search){const smp=T(SAMPLE_DE,SAMPLE_EN);$('src').value=smp;render(smp)}};
+$('langBtn').onclick=()=>{LANG=LANG==='de'?'en':'de';localStorage.setItem(LS,LANG);applyLang();if($('sheet').classList.contains('open')&&sheetTake)showSheet(sheetTake);if(!location.hash&&!location.search){const smp=T(SAMPLE_DE,SAMPLE_EN);$('src').value=smp;render(smp)}};
 applyLang();
 loadFromUrl();window.addEventListener('hashchange',loadFromUrl);
-$('tGo').onclick=()=>toggle();$('tNext').onclick=()=>{if(!$('ssm').checked){$('ssm').checked=true}ssNext()};$('tRedo').onclick=()=>{$('ssm').checked=true;ssRedo()};
-setInterval(()=>{$('tGo').textContent=(playing||recording)?T('⏸ Stopp','⏸ Stop'):'▶ Start'},300);
+setInterval(syncDock,400);
 if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener('devicechange',listMics);listMics();
 if(!window.isSecureContext)showErr(T('Bitte die Seite über https:// öffnen – als lokale Datei blockieren Browser das Mikrofon.','Please open this page via https:// – browsers block the microphone for local files.'));else if(!navigator.mediaDevices)status(T('Mikrofon-API nicht verfügbar','Microphone API not available'));
-window.__tp={takes,start,stop,micOn,get recording(){return recording},get scrollTop(){return $('scroller').scrollTop}};
+window.__tp={takes,start,stop,micOn,showSheet,closeSheet,get recording(){return recording},get paused(){return paused},get sheetOpen(){return $('sheet').classList.contains('open')},get lastTake(){return sheetTake||takes[takes.length-1]||null},get scrollTop(){return $('scroller').scrollTop}};
 })();
 </script></body></html>
